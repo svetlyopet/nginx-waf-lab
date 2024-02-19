@@ -1,6 +1,6 @@
 FROM alpine:3.16.2 as modsecurity-build
 
-ARG MODSECURITY_VERSION=v3.0.6
+ARG MODSECURITY_VERSION=v3.0.12
 
 RUN apk update \
     && apk upgrade \
@@ -52,9 +52,9 @@ RUN strip /usr/local/modsecurity/bin/* \
 
 FROM alpine:3.16.2 as nginx-build
 
-ARG NGINX_VERSION=1.23.1
+ARG NGINX_VERSION=1.25.4
 ARG MODSECURITY_CONNECTOR_VERSION=v1.0.3
-ARG CRS_VERSION=3.3.2
+ARG CRS_VERSION=4.0.0
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -170,6 +170,8 @@ COPY --from=nginx-build /usr/sbin/nginx /usr/sbin/nginx
 
 COPY --from=nginx-build /etc/nginx /etc/nginx
 
+COPY conf/nginx.conf /etc/nginx/nginx.conf
+
 COPY conf/conf.d /etc/nginx/conf.d
 
 RUN apk update \
@@ -193,7 +195,8 @@ RUN apk update \
 RUN touch /etc/nginx/modsecurity.d/include.conf \
     && echo "include /etc/nginx/modsecurity.d/modsecurity.conf" >> /etc/nginx/modsecurity.d/include.conf \
     && echo "include /usr/local/share/coreruleset/crs-setup.conf" >> /etc/nginx/modsecurity.d/include.conf \
-    && echo "include /usr/local/share/coreruleset/rules/*.conf" >> /etc/nginx/modsecurity.d/include.conf
+    && echo "include /usr/local/share/coreruleset/rules/*.conf" >> /etc/nginx/modsecurity.d/include.conf \
+    && sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /etc/nginx/modsecurity.d/modsecurity.conf
 
 STOPSIGNAL SIGTERM
 

@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  backend-application:
+    build:
+      context: backend-application/.
+    image: backend-application
+    container_name: backend-application
+    networks:
+      - waf-test-lab
+  nginx-no-waf:
+    build:
+      context: nginx/.
+    image: nginx-no-waf
+    container_name: nginx-no-waf
+    networks:
+      - waf-test-lab
+  nginx-waf:
+    build:
+      context: nginx-waf/.
+      args:
+        - VCS_REF=$(git rev-parse --short HEAD)
+        - BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    image: nginx-waf
+    container_name: nginx-with-waf
+    networks:
+      - waf-test-lab
+      
+networks:
+  waf-test-lab:
